@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat App</title>
+</head>
+<body>
+    <div id="chat"></div>
+    <input type="text" id="messageInput" placeholder="Type a message...">
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:8080');
+        const chat = document.getElementById('chat');
+        const messageInput = document.getElementById('messageInput');
+
+        ws.onmessage = function(event) { //메세지를 받았을때 출력
+            // event.data가 Blob 인스턴스일 경우 FileReader를 사용해서 읽어오기
+            if (event.data instanceof Blob) { //이벤트 데이터를 if문 안 처럼 뽑아냄
+                const reader = new FileReader();
+                reader.onload = function() {
+                    const message = document.createElement('p');
+                    message.textContent = reader.result;
+                    chat.appendChild(message);
+                };
+                reader.readAsText(event.data);
+            } else {
+                // 메시지가 문자열인 경우, 직접 표시
+                const message = document.createElement('p');
+                message.textContent = event.data;
+                chat.appendChild(message);
+            }
+        };
+
+        function sendMessage() { //버튼 클릭 -> 메세지 전송
+            const message = messageInput.value; //텍스트창 안에있는 내용을 보내줌
+            ws.send(message);
+            messageInput.value = '';
+        }
+    </script>
+</body>
+</html>
